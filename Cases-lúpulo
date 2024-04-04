@@ -1,0 +1,70 @@
+library(pliman)
+library(rio)
+library(tidyverse)
+library(AgroR)
+library(metan)
+set_wd_here()
+padrao <- "T"
+
+
+
+res <-
+analyze_objects(pattern = "T",
+                # extension = 2,
+                # tolerance = 8,
+                watershed = FALSE,
+                reference = TRUE,
+                reference_area = 6.25,
+                # fill_hull = TRUE,
+                threshold = 0.4,
+                filter = FALSE,
+                save_image = FALSE,
+                dir_processed = "proc",
+                parallel = TRUE,
+                object_index = "DGCI")
+
+substrato <- c(rep("CC", 6), rep("CS", 6))
+inoculante <-rep(c(rep("SA", 3), rep("CA", 3)), 2)
+
+dgci <- res$object_index
+medias <- 
+  res$results %>% 
+  left_join(dgci) %>% 
+  separate(img, into = c("trat", "rep", "folha")) %>% 
+  group_by(trat, rep) %>% 
+  summarise(n = n(),
+            dgci = mean(DGCI),
+            afmin = min(area),
+            afmax = max(area),
+            afpla = sum(area)) %>% 
+  bind_cols(data.frame(substrato, inoculante)) %>% 
+  relocate(substrato, inoculante, .after = trat)
+
+library(rio)
+export(res$results, 
+       file = "C:/Users/paulo/Desktop/Novapasta/Tratamentos/results.xlsx")
+
+
+# juntando com os outros dados
+medias <- import("1newresult_fotos.xlsx")
+# anova dgci
+with(medias, FAT2DIC(substrato, inoculante, dgci))
+# 1
+with(medias, FAT2DIC(substrato, inoculante, afmin))
+# 2
+with(medias, FAT2DIC(substrato, inoculante, afmax))
+# 3
+with(medias, FAT2DIC(substrato, inoculante, afpla))
+# 4
+with(medias, FAT2DIC(substrato, inoculante, mvfol))
+# 5
+with(medias, FAT2DIC(substrato, inoculante, msfol))
+# 6
+with(medias, FAT2DIC(substrato, inoculante, mvraiz))
+# 7
+with(medias, FAT2DIC(substrato, inoculante, msraiz))
+
+# criar gráfico
+plot_factbars(medias, substrato, inoculante, resp = n,
+              values = TRUE)
+
