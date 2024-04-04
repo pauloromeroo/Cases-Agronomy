@@ -1,0 +1,72 @@
+library(rio)
+library(tidyverse)
+library(AgroR)
+library(metan)
+
+setwd("C:/Users/paulo/Desktop/tudo/IC")
+
+list.files()
+df <- 
+import("dados.xlsx")
+
+dfplant <-
+import('https://raw.githubusercontent.com/TiagoOlivoto/67rbras22seagro/master/data/data_parcelas.csv') %>% 
+  filter(epoca %in% c("E1", "E4")) %>% 
+  mutate(epoca = ifelse(epoca == "E4", "E2", epoca)) %>% 
+  left_join(df)
+
+
+# Fenolicos Totais
+modft <- with(df,
+            FAT2DBC(epoca, cultivar, bloco, Ft,
+                    xlab = "Épocas de semeadura"))
+                  labs(y = "FenolicosTotais (unidade)")
+           ggsave("FenolicosTotais.jpg")
+           modft[[2]] +
+  labs(y = "Ft (unidade)")
+ggsave("FenolicosTotais.jpg")
+           
+# Flavonoides
+modflav <- with(df,
+            FAT2DBC(epoca, cultivar, bloco, Fl,
+                    xlab = "Épocas de semeadura"))       
+modflav[[2]] +
+  labs(y = "Fl (unidade)")
+ggsave("Flavonoides.jpg")
+
+# DPPH
+modDPPH <- with(df,
+            FAT2DBC(epoca, cultivar, bloco, DPPH,
+                    xlab = "Épocas de semeadura"))       
+modDPPH[[2]] +
+  labs(y = "DPPH (unidade)")
+ggsave("DPPH.jpg")
+
+#Lip
+modLip <- with(df,
+            FAT2DBC(epoca, cultivar, bloco, Lip,
+                    xlab = "Épocas de semeadura"))       
+modLip[[2]] +
+  labs(y = "Lip (unidade)")
+ggsave("Lip.jpg")
+
+ df <- import("https://docs.google.com/spreadsheets/d/1vX1Moc4kJLWRATz5cjQzWjmP82LoaOHy/edit#gid=237715130",
+             dec = ",")
+
+
+   
+df_ggplot <-
+  df |>
+  select(epoca:cultivar, C14_1:C22_6n3) |>
+  pivot_longer(C14_1:C22_6n3) |>
+  mutate(GRUPO = ifelse(value < 1, "Outro", name)) |>
+  mean_by(GRUPO, epoca, cultivar)
+
+# Correlação
+{r}
+corr_coef(dfplant,df_ggplot, rgha, mmg, nc,cp,ng, Ft, C17_0, C18_2n6t, C18_3n6, C20_11n9, C20_3n6) |> 
+
+ 
+
+export(dfplant, "dados_mixed.xlsx")
+
