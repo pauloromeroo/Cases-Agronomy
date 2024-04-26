@@ -1,0 +1,35 @@
+library(tidyverse)  # manipulação de dados
+library(metan)      # estatísticas descritivas
+library(rio)        # importação/exportação de dados
+
+
+
+set_wd_here
+
+list.files()
+df_dic <- import("plseveridade.xlsx",dec = ",")
+df_dic <- as_factor(df_dic, 1:2)
+porcmd <- df_dic$porcmd
+aread <- df_dic$aread
+desc_stat(df_dic)
+inspect(df_dic, plot = TRUE)
+
+
+ggplot(df_dic)
+ggplot(df_dic, aes(as_factor, aread)) +
+  geom_boxplot() +
+  labs(x = "Tratamento",
+       y = "Severidade da MFG-(cm2)")
+
+ggplot(df_dic)
+ggplot(df_dic, aes(as_factor, porcmd)) +
+  geom_boxplot() +
+  labs(x = "Tratamento",
+       y = "Porcentagem de dano")
+
+ggplot(df_dic, aes(x = porcmd)) +
+  geom_histogram(bins = 3) + # 10 classes
+  facet_wrap(~as_factor) +
+  labs(x = " Porcentagem com dano(%)",
+       y = "Frequência de danos")
+
